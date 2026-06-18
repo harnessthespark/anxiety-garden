@@ -88,6 +88,28 @@
   .muted{color:var(--ink-soft)}
   .fine{font-size:.86rem; color:var(--ink-faint)}
 
+  /* ---------- entry gate (soft access gate for the preview) ---------- */
+  #gate{position:fixed; inset:0; z-index:2000; display:flex; align-items:center; justify-content:center;
+    padding:24px; background:radial-gradient(140% 90% at 50% 0%, var(--paper) 40%, var(--paper-2) 100%);
+    transition:opacity .5s var(--ease)}
+  #gate.gone{opacity:0; pointer-events:none}
+  .gate-card{width:100%; max-width:420px; background:var(--card); border:1px solid var(--line);
+    border-radius:var(--radius); box-shadow:var(--shadow); padding:34px 30px; text-align:center}
+  .gate-card .wordmark{justify-content:center; margin-bottom:8px}
+  .gate-card h1{font-size:clamp(2.4rem,8vw,3.2rem); margin:.05em 0 .1em}
+  .gate-card .sub{color:var(--ink-soft); margin:0 auto 22px; max-width:34ch}
+  .gate-field{text-align:left; margin:0 0 14px}
+  .gate-field label{display:block; font-weight:700; font-size:.9rem; color:var(--ink-soft); margin:0 0 5px}
+  .gate-field input{width:100%; padding:12px 14px; border:1.5px solid var(--line); border-radius:12px;
+    font-family:var(--font-body); font-size:1rem; color:var(--ink); background:#fff; transition:border-color .2s}
+  .gate-field input:focus{outline:none; border-color:var(--moss)}
+  .gate-btn{width:100%; margin-top:6px; padding:13px; border:none; border-radius:999px; cursor:pointer;
+    background:var(--moss); color:#fff; font-family:var(--font-head); font-size:1.35rem; font-weight:700;
+    box-shadow:0 6px 16px rgba(111,143,94,.35); transition:transform .12s, background .2s}
+  .gate-btn:hover{transform:translateY(-1px); background:var(--moss-deep)}
+  .gate-err{min-height:1.2em; margin:12px 0 0; color:var(--alarm); font-size:.92rem; font-weight:700}
+  .gate-fine{margin-top:18px; font-size:.8rem; color:var(--ink-faint)}
+
   /* ---------- placeholder art slots (for Lisa's Adobe art) ---------- */
   .slot{
     border:2px dashed #c3b48f; border-radius:18px; background:repeating-linear-gradient(45deg,rgba(196,180,140,.07) 0 12px,transparent 12px 24px);
@@ -463,6 +485,59 @@
 </style>
 </head>
 <body>
+  <!-- ===== ENTRY GATE — soft access gate for the shared preview ===== -->
+  <div id="gate" role="dialog" aria-modal="true" aria-label="Sign in to the garden">
+    <form class="gate-card" id="gate-form" autocomplete="off">
+      <div class="wordmark"><span class="leaf" aria-hidden="true"></span> the garden</div>
+      <h1>Welcome in</h1>
+      <p class="sub">A quiet place to tend. Sign in with the details you were given.</p>
+      <div class="gate-field">
+        <label for="g-user">Username</label>
+        <input id="g-user" name="user" type="text" autocapitalize="none" autocomplete="username" required>
+      </div>
+      <div class="gate-field">
+        <label for="g-pass">Password</label>
+        <input id="g-pass" name="pass" type="password" autocomplete="current-password" required>
+      </div>
+      <button class="gate-btn" type="submit">Enter the garden →</button>
+      <p class="gate-err" id="gate-err" role="alert"></p>
+      <p class="gate-fine">Shared by invitation — please don't pass these details on.</p>
+    </form>
+  </div>
+  <script>
+  (function(){
+    /* ---- SOFT ACCESS GATE (preview) -----------------------------------
+       Change CREDS to whatever you want to share. NOTE: this check runs in
+       the browser, so it's a SOFT gate — it keeps casual visitors out, but a
+       determined person could read the password in the page source. When the
+       FastAPI backend is up, point this form at a real /auth endpoint and it
+       becomes proper security. Fine as-is for a portfolio-style preview. */
+    var CREDS = { user: 'tend', pass: 'quiet-meadow-shelter-47' };
+    var KEY = 'garden.gate';
+    var gate = document.getElementById('gate');
+    var form = document.getElementById('gate-form');
+    var err  = document.getElementById('gate-err');
+    function open(){ gate.classList.add('gone'); document.body.style.overflow=''; }
+    try{
+      if(sessionStorage.getItem(KEY)==='1'){ open(); }
+      else { document.body.style.overflow='hidden'; document.getElementById('g-user').focus(); }
+    }catch(e){ document.body.style.overflow='hidden'; }
+    form.addEventListener('submit', function(e){
+      e.preventDefault();
+      var u = document.getElementById('g-user').value.trim();
+      var p = document.getElementById('g-pass').value;
+      if(u===CREDS.user && p===CREDS.pass){
+        try{ sessionStorage.setItem(KEY,'1'); }catch(_){}
+        err.textContent=''; open();
+      } else {
+        err.textContent = "That doesn't match — check the details you were sent.";
+        document.getElementById('g-pass').value='';
+        document.getElementById('g-pass').focus();
+      }
+    });
+  })();
+  </script>
+
   <header>
     <div class="wordmark"><span class="leaf" aria-hidden="true"></span> the garden</div>
     <label class="coach-toggle">
@@ -490,6 +565,7 @@
       <p class="muted" style="margin-top:14px">This was never about controlling your mind. It's about becoming its gardener.</p>
       <div class="row"><button class="btn" data-go="1">Step into the garden →</button></div>
       <p class="fine" style="margin-top:20px">Go gently — one screen at a time. Nothing here is a test, and there are no wrong answers.</p>
+      <p class="fine" style="margin-top:6px;opacity:.8">This is a preview — your entries aren't saved remotely. They live only in this browser, on this device.</p>
       <div class="coach-note"><div class="inner"><span class="tag">🌱 For the coach</span><p>Set the frame before they start: <em>they are the gardener, not the weather.</em> This isn't diagnosis — it's a kinder way to read themselves. Let them set the pace.</p></div></div>
     </section>
 
@@ -563,20 +639,7 @@
       <h2>What trips your alarm?</h2>
       <div class="bear-stage">
         <div class="bear-art" id="bearArt">
-          <svg viewBox="0 0 300 200" role="img" aria-label="A bear at the edge of the garden">
-            <defs><filter id="rough" x="-6%" y="-6%" width="112%" height="112%"><feTurbulence type="fractalNoise" baseFrequency="0.016" numOctaves="2" seed="5" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.4"/></filter></defs>
-            <g class="rough">
-              <path d="M44,120 C52,112 56,110 62,110 C70,108 74,102 78,96 C80,90 84,86 88,86 C90,78 100,76 104,82 C108,86 110,90 114,94 C120,98 126,92 134,82 C140,72 146,66 156,66 C190,68 222,80 244,92 C258,98 268,108 268,122 C268,140 264,158 262,172 C262,180 262,184 262,184 L234,184 C234,176 236,168 236,160 C230,166 222,170 214,170 C188,174 158,175 130,173 C130,177 129,181 128,184 L102,184 C103,176 104,170 104,166 C92,158 82,150 76,142 C64,138 54,134 48,130 C46,127 45,123 44,120 Z"
-                    fill="#a3886a" stroke="#3b4136" stroke-width="2.4" stroke-linejoin="round"/>
-              <path class="scribble" d="M92,84 C95,80 100,80 102,84"/>
-              <ellipse cx="65" cy="107" rx="3" ry="3.8" fill="#3b4136"/>
-              <ellipse cx="47" cy="117" rx="4" ry="3.2" fill="#3b4136"/>
-              <path class="scribble" d="M48,122 C54,126 61,127 67,125"/>
-              <path class="scribble" d="M156,74 C166,90 170,108 168,128"/>
-              <path class="scribble" d="M246,102 C254,118 254,140 250,160"/>
-            </g>
-          </svg>
-          <span class="slot-note">stand-in → drop assets/bear-at-treeline.svg (or .png)</span>
+          <img class="bear-img" src="assets/bear-trim.png" alt="A bear peering between two trees at the edge of the garden">
         </div>
         <div>
           <p class="lede">Picture a bear at the edge of your garden. Your alarm doesn't wait to check it's really there — a shadow at the treeline is enough. Most days it's only the wind in the branches… yet the alarm fires all the same.</p>
@@ -1223,16 +1286,8 @@
     });
   }
 
-  // screen 3: load the new bear, cropped to its art (replaces the inline stand-in)
-  var bearLoaded=false;
-  function ensureBear(){
-    if(bearLoaded) return; bearLoaded=true;
-    var host=document.getElementById('bearArt'); if(!host) return;
-    var img=new Image();
-    img.className='bear-img'; img.alt='A bear at the edge of the garden';
-    img.onload=function(){ host.innerHTML=''; host.appendChild(img); };
-    img.src='assets/bear-trim.png';
-  }
+  // the bear (bear-trim.png) is now in the markup directly — no stand-in to swap, no load-flash.
+  function ensureBear(){ /* no-op: bear is static in #bearArt markup */ }
 
   /* ----- coach mode (gentle expand, no layout jolt) ----- */
   document.getElementById('coachToggle').addEventListener('change',function(e){
