@@ -476,6 +476,35 @@
     .place-glow{opacity:.42}
     .weather-cast .streak{display:none}
   }
+  /* "step into the shed" — the shelter button (earthy, distinct from "let it move on") */
+  .cast-note .w-shed{margin:7px 0 0 6px; border:1.5px solid var(--soil); background:none; color:var(--soil);
+    font-family:inherit; font-size:.84rem; font-weight:700; border-radius:999px; padding:4px 12px; cursor:pointer}
+  .cast-note .w-shed:hover{background:#f1e9dd}
+  /* ---------- the shed view — watching the weather pass from shelter (MODEL §7) ----------
+     Rain-on-glass over inside-shed-web.png; you step in to take perspective, and step back out. */
+  #shedView{position:fixed; inset:0; z-index:1500; display:none; align-items:center; justify-content:center;
+    padding:18px; background:rgba(20,18,14,.72); backdrop-filter:blur(2px)}
+  #shedView.open{display:flex}
+  .shed-frame{position:relative; width:min(96vw,1100px); aspect-ratio:1400/787; overflow:hidden;
+    background:url('assets/inside-shed-web.png') center/cover; border-radius:16px;
+    box-shadow:0 18px 54px rgba(0,0,0,.5)}
+  .shed-frame .pane{position:absolute; overflow:hidden;
+    -webkit-backdrop-filter:blur(2.4px) saturate(.7) brightness(.84);
+    backdrop-filter:blur(2.4px) saturate(.7) brightness(.84);
+    background:linear-gradient(rgba(86,100,116,.30), rgba(64,78,94,.36))}
+  .shed-frame .pane canvas{position:absolute; inset:0; width:100%; height:100%; display:block}
+  /* pane positions are %-tuned to the painted windows in inside-shed-web.png (1400×787) */
+  .shed-frame .left {left:13.8%; top:6.6%; width:27.3%; height:39.6%}
+  .shed-frame .right{left:52.6%; top:6.6%; width:24.6%; height:39.6%}
+  .shed-cap{position:absolute; left:50%; bottom:6.5%; transform:translateX(-50%); white-space:nowrap;
+    background:rgba(20,24,20,.55); color:#f3efe6; font-family:var(--font-head); font-size:1.4rem;
+    padding:4px 18px; border-radius:999px; -webkit-backdrop-filter:blur(3px); backdrop-filter:blur(3px)}
+  .shed-out{position:absolute; left:14px; top:13px; cursor:pointer; font-family:var(--font-body);
+    font-weight:700; font-size:.9rem; color:#f3efe6; border:1.5px solid rgba(255,255,255,.55);
+    background:rgba(20,24,20,.45); border-radius:999px; padding:7px 14px;
+    -webkit-backdrop-filter:blur(3px); backdrop-filter:blur(3px)}
+  .shed-out:hover{background:rgba(20,24,20,.72)}
+  @media(prefers-reduced-motion:reduce){ #shedView{backdrop-filter:none} }
 
   /* ---------- worksheet / print scaffold (full garden-map is screen 9) ---------- */
   @media print{
@@ -1667,15 +1696,20 @@
        the dial owns the good/bad appraisal and re-sends kind sunbreak|hail). Everything else offers
        "let it move on" to embody "it passes". */
     var control = (kind==='flash') ? '' : '<button type="button" class="w-move">let it move on</button>';
+    /* rain & storm are genuinely wet → offer the shelter view (rain-on-glass). Only these two stay
+       metaphor-true; fog/haze get their own "panes fog up" treatment later. The shed is a place to
+       move *between*, not live in (MODEL §7) — "step back out" is always there. */
+    var shelter = (kind==='rain'||kind==='storm') ? '<button type="button" class="w-shed">step into the shed →</button>' : '';
     var note='<span class="w-name">'+esc(w.name)+'</span>'+
              (where?'<span class="w-where">where it lands — '+esc(where)+'</span>':'')+
-             '<span class="w-pass">'+esc(w.pass)+'</span>'+control;
+             '<span class="w-pass">'+esc(w.pass)+'</span>'+control+shelter;
 
     ov.innerHTML=body+'<div class="cast-note" role="status" aria-live="polite">'+note+'</div>';
     // force reflow so the .on transition runs even on a re-cast
     void ov.offsetWidth;
     ov.classList.add('on');
     var mv=ov.querySelector('.w-move'); if(mv) mv.addEventListener('click', function(){ clearCast(); });
+    var sh=ov.querySelector('.w-shed'); if(sh) sh.addEventListener('click', function(){ if(window.__openShed) window.__openShed(kind, inten); });
     /* the briefest weather passes by itself — cleared regardless of motion pref so it never sits stuck */
     if(kind==='flash'){ flashTimer=setTimeout(function(){ clearCast(); }, reduced()?1400:2400); }
 
@@ -1722,6 +1756,84 @@
     var saved=localStorage.getItem('garden.cast');
     if(saved){ var d=JSON.parse(saved); if(d && d.kind && d.mode!=='climate') setTimeout(function(){ cast(d); }, 400); }
   }catch(e){}
+})();
+</script>
+
+<!-- the shed view (rain-on-glass shelter) — hidden until you step in -->
+<div id="shedView" role="dialog" aria-modal="true" aria-label="Inside the shed — watching the weather pass" aria-hidden="true">
+  <div class="shed-frame">
+    <div class="pane left"><canvas></canvas></div>
+    <div class="pane right"><canvas></canvas></div>
+    <span class="shed-cap" id="shedCap">watching the rain pass</span>
+    <button type="button" class="shed-out" id="shedOut">← step back out</button>
+  </div>
+</div>
+<script>
+/* The shed view: rain-on-glass over the two windows of inside-shed-web.png. You "step in" to take
+   perspective (watch it pass from shelter) and step back out — the shed is to move *between*, not live
+   in (MODEL §7). Reduced-motion → static drops. rAF is torn down on close so loops never leak. */
+(function(){
+  var view=document.getElementById('shedView'); if(!view) return;
+  var cap=document.getElementById('shedCap'), out=document.getElementById('shedOut');
+  var dpr=Math.min(2, window.devicePixelRatio||1);
+  var reduce=window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function R(a,b){ return a+Math.random()*(b-a); }
+  var glasses=[];
+
+  function makeGlass(canvas, heavy){
+    var ctx=canvas.getContext('2d'), W=0,H=0, drops=[], runners=[], clouds=[], raf=null;
+    function size(){ W=canvas.width=Math.max(2,canvas.clientWidth*dpr); H=canvas.height=Math.max(2,canvas.clientHeight*dpr); seed(); }
+    function seed(){
+      drops=[]; var n=Math.min(heavy?320:240, (W*H)/(heavy?5200:6800));
+      for(var i=0;i<n;i++) drops.push({x:R(0,W),y:R(0,H),r:R(1,3)*dpr});
+      runners=[]; clouds=[];
+      for(var c=0;c<3;c++) clouds.push({x:R(0,W),y:R(0,H*0.45),r:R(W*0.28,W*0.55),sp:R(.04,.13)*dpr});
+    }
+    function cloud(c){ var g=ctx.createRadialGradient(c.x,c.y,c.r*0.1,c.x,c.y,c.r);
+      g.addColorStop(0,'rgba(222,228,236,0.32)'); g.addColorStop(1,'rgba(222,228,236,0)');
+      ctx.fillStyle=g; ctx.beginPath(); ctx.arc(c.x,c.y,c.r,0,6.283); ctx.fill(); }
+    function drop(d){ var g=ctx.createRadialGradient(d.x-d.r*0.35,d.y-d.r*0.45,d.r*0.1,d.x,d.y,d.r);
+      g.addColorStop(0,'rgba(255,255,255,0.55)'); g.addColorStop(0.5,'rgba(210,230,242,0.12)'); g.addColorStop(1,'rgba(150,175,195,0.02)');
+      ctx.fillStyle=g; ctx.beginPath(); ctx.arc(d.x,d.y,d.r,0,6.283); ctx.fill(); }
+    function frame(){
+      ctx.clearRect(0,0,W,H);
+      for(var i=0;i<clouds.length;i++){ var c=clouds[i]; cloud(c); c.x+=c.sp; if(c.x-c.r>W) c.x=-c.r; }
+      for(var k=0;k<drops.length;k++) drop(drops[k]);
+      var maxR=heavy?10:7, rate=heavy?0.08:0.04;
+      if(runners.length<maxR && Math.random()<rate) runners.push({x:R(0,W),y:R(-12,H*0.22),r:R(3,7)*dpr,v:R(.3,1.0)*dpr});
+      for(var j=runners.length-1;j>=0;j--){ var r=runners[j];
+        var tg=ctx.createLinearGradient(r.x,r.y-36*dpr,r.x,r.y);
+        tg.addColorStop(0,'rgba(235,245,250,0)'); tg.addColorStop(1,'rgba(235,245,250,0.22)');
+        ctx.fillStyle=tg; ctx.fillRect(r.x-r.r*0.45,r.y-36*dpr,r.r*0.9,36*dpr);
+        drop(r); r.y+=r.v; r.v*=1.008; if(r.y>H+20) runners.splice(j,1);
+      }
+      raf=requestAnimationFrame(frame);
+    }
+    function still(){ ctx.clearRect(0,0,W,H); for(var k=0;k<drops.length;k++) drop(drops[k]); }
+    return {
+      start:function(){ size(); if(reduce) still(); else { if(raf) cancelAnimationFrame(raf); frame(); } },
+      resize:function(){ size(); if(reduce) still(); },
+      stop:function(){ if(raf) cancelAnimationFrame(raf); raf=null; }
+    };
+  }
+  function teardown(){ glasses.forEach(function(g){ g.stop(); }); glasses=[]; }
+
+  function openShed(kind){
+    cap.textContent = (kind==='storm') ? 'watching the storm blow over' : 'watching the rain pass';
+    view.classList.add('open'); view.setAttribute('aria-hidden','false'); document.body.style.overflow='hidden';
+    teardown();
+    requestAnimationFrame(function(){           // build glass AFTER visible (clientWidth is 0 while hidden)
+      view.querySelectorAll('.pane canvas').forEach(function(cv){ var g=makeGlass(cv, kind==='storm'); glasses.push(g); g.start(); });
+      try{ out.focus(); }catch(e){}
+    });
+  }
+  function closeShed(){ teardown(); view.classList.remove('open'); view.setAttribute('aria-hidden','true'); document.body.style.overflow=''; }
+
+  out.addEventListener('click', closeShed);
+  view.addEventListener('click', function(e){ if(e.target===view) closeShed(); });
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape' && view.classList.contains('open')) closeShed(); });
+  window.addEventListener('resize', function(){ if(view.classList.contains('open')) glasses.forEach(function(g){ g.resize(); }); });
+  window.__openShed=openShed; window.__closeShed=closeShed;
 })();
 </script>
 
