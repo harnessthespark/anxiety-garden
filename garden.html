@@ -452,6 +452,13 @@
   .cast-note .w-move{margin-top:7px; border:1.5px solid var(--moss); background:none; color:var(--moss-deep);
     font-family:inherit; font-size:.84rem; font-weight:700; border-radius:999px; padding:4px 12px; cursor:pointer}
   .cast-note .w-move:hover{background:#eef3e6}
+  /* drifting clouds — the slow "alive" layer over the outside cast (MODEL §7: wanted in both modes).
+     Rendered behind the weather effect; a gentle ±drift (reuses cast-drift), never a full sweep. */
+  .weather-cast .w-clouds{position:absolute; inset:0; overflow:hidden}
+  .weather-cast .cloud{position:absolute; border-radius:50%;
+    background:radial-gradient(closest-side, var(--cloud,rgba(240,243,248,.55)), transparent);
+    animation:cast-drift ease-in-out infinite}
+  .weather-cast .w-clouds.dark{--cloud:rgba(72,76,86,.5)}  /* heavy thunderheads for storm */
   @keyframes cast-breathe{0%,100%{opacity:.5}50%{opacity:.9}}
   /* fall travels a fixed pixel distance (covers the scene) — % would be relative to the drop's own
      tiny box and barely move (the old "fireworks" stutter). */
@@ -464,7 +471,8 @@
   @media(prefers-reduced-motion:reduce){
     /* stillness + a steady soft tint; the caption words do the work */
     .weather-cast .w-sun,.weather-cast .w-sunbreak,.weather-cast .w-fog,.weather-cast .w-haze,
-    .weather-cast .w-storm,.weather-cast .w-storm .bolt,.weather-cast .w-flash,.place-glow{animation:none !important}
+    .weather-cast .w-storm,.weather-cast .w-storm .bolt,.weather-cast .w-flash,.place-glow,
+    .weather-cast .cloud{animation:none !important}
     .place-glow{opacity:.42}
     .weather-cast .streak{display:none}
   }
@@ -1675,15 +1683,24 @@
   }
 
   function kindVisual(kind, inten){
-    if(kind==='sun')      return '<div class="w-sun"><div class="rainbow"></div></div>';
+    // clouds render FIRST (behind the weather effect); storm uses dark drifting thunderheads.
+    if(kind==='sun')      return clouds(2)+'<div class="w-sun"><div class="rainbow"></div></div>';
     if(kind==='sunbreak') return '<div class="w-sunbreak"></div>';
-    if(kind==='rain')     return '<div class="w-rain">'+streaks(40,1,98)+'</div>';
-    if(kind==='fog')      return '<div class="w-fog"></div>';
-    if(kind==='haze')     return '<div class="w-haze"></div>';
-    if(kind==='storm')    return '<div class="w-storm">'+((inten||0)>0.6?'<div class="bolt"></div>':'')+'</div>';
+    if(kind==='rain')     return clouds(4)+'<div class="w-rain">'+streaks(40,1,98)+'</div>';
+    if(kind==='fog')      return clouds(2)+'<div class="w-fog"></div>';
+    if(kind==='haze')     return '<div class="w-haze"></div>';   // distinct smog — no cloud layer
+    if(kind==='storm')    return clouds(4,true)+'<div class="w-storm">'+((inten||0)>0.6?'<div class="bolt"></div>':'')+'</div>';
     if(kind==='flash')    return '<div class="w-flash"></div>';
     if(kind==='hail')     return '<div class="w-hail">'+streaks(26,2,96)+'</div>';
     return '';
+  }
+  /* a few soft, slowly-drifting clouds. n = how many; dark = heavy storm thunderheads. */
+  function clouds(n, dark){
+    var defs=[[6,10,38,26,30],[40,5,44,30,26],[66,18,34,24,34],[22,28,30,22,24]]; // left,top,w,h (%) + dur(s)
+    var s='<div class="w-clouds'+(dark?' dark':'')+'">';
+    for(var i=0;i<n && i<defs.length;i++){ var d=defs[i];
+      s+='<span class="cloud" style="left:'+d[0]+'%; top:'+d[1]+'%; width:'+d[2]+'%; height:'+d[3]+'%; animation-duration:'+d[4]+'s; animation-delay:-'+(i*6)+'s"></span>'; }
+    return s+'</div>';
   }
   function streaks(n, x0, span){
     var s='';
