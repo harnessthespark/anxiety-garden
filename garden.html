@@ -299,6 +299,25 @@
   /* ---------- role cards (screen 2) ---------- */
   .roles{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:8px}
   @media(max-width:600px){.roles{grid-template-columns:1fr}}
+  /* ---------- "make these yours" — first-person hands + skin-tone picker ----------
+     The picker sets --skin-filter globally; every .hands element (here + future action scenes)
+     re-tints to the chosen tone. Filters preserve the illustration's shading (lighter/deeper). */
+  :root{ --skin-filter:none }
+  .hands{ filter:var(--skin-filter); transition:filter .35s ease }
+  .skin-intro{ margin:26px 0 6px; padding:18px; border:1.5px solid var(--line); border-radius:18px;
+    background:var(--card); box-shadow:var(--shadow); text-align:center }
+  .skin-intro h3{ font-family:var(--font-head); font-size:1.5rem; color:var(--moss-deep); margin:.1em 0 .25em }
+  .skin-intro .muted{ max-width:46ch; margin:0 auto }
+  .hands-stage{ max-width:300px; margin:12px auto 4px; aspect-ratio:3/2; border-radius:14px; overflow:hidden;
+    display:flex; align-items:flex-end; justify-content:center;
+    background:linear-gradient(#cfe7f4 0%, #aedd8f 62%, #8cc56e 100%) }
+  .hands-stage img{ width:64%; height:auto; margin-bottom:-2% }
+  .skin-picker{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:12px }
+  .swatch{ width:38px; height:38px; border-radius:50%; border:2px solid #fff; cursor:pointer;
+    box-shadow:0 0 0 1.5px var(--line); transition:transform .12s, box-shadow .15s }
+  .swatch:hover{ transform:translateY(-2px) }
+  .swatch[aria-pressed="true"]{ box-shadow:0 0 0 3px var(--moss-deep); transform:translateY(-2px) }
+  .skin-intro .hint{ color:var(--ink-soft); font-size:.88rem; margin:12px 0 0 }
   .role{border:1.5px solid var(--line); background:var(--card); border-radius:18px; padding:16px 18px; cursor:pointer; transition:border-color .2s, transform .2s var(--ease)}
   .role:hover{border-color:var(--moss); transform:translateY(-2px)}
   .role h3{font-family:var(--font-head); font-size:1.5rem; margin:0 0 1px; display:flex; align-items:center; gap:8px}
@@ -661,6 +680,15 @@
           <button class="demo-btn" data-demo="alarm">See the alarm trip →</button>
           <button class="demo-btn" data-demo="calm">Calm the weather ↺</button>
         </div>
+      </div>
+
+      <div class="skin-intro" id="skinIntro">
+        <p class="eyebrow">your hands</p>
+        <h3>make these yours</h3>
+        <p class="muted">The gardener out in the garden is anyone. These hands — the ones doing the work — are <em>yours</em>.</p>
+        <div class="hands-stage"><img class="hands" id="handsPreview" src="assets/hands-web.png" alt="A pair of hands, reaching"></div>
+        <div class="skin-picker" id="skinPicker" role="group" aria-label="Choose your skin tone"></div>
+        <p class="hint">tap a tone — it's remembered.</p>
       </div>
 
       <div class="row">
@@ -1834,6 +1862,37 @@
   document.addEventListener('keydown', function(e){ if(e.key==='Escape' && view.classList.contains('open')) closeShed(); });
   window.addEventListener('resize', function(){ if(view.classList.contains('open')) glasses.forEach(function(g){ g.resize(); }); });
   window.__openShed=openShed; window.__closeShed=closeShed;
+})();
+</script>
+
+<script>
+/* "make these yours" — skin-tone picker. Sets --skin-filter globally so every .hands element
+   (this preview + future action-scene hands) re-tints. Tones tuned to hands-web.png — retune the
+   config when Lisa's real action-pose art lands. Saved tone is applied at init (no default-tone flash);
+   selected state is aria-pressed + a ring (never colour-only); each swatch is aria-labelled. */
+(function(){
+  var SKINS=[
+    {name:'light',   swatch:'#f0d6bd', filter:'brightness(1.34) saturate(.72) hue-rotate(-4deg)'},
+    {name:'fair',    swatch:'#e6bd94', filter:'brightness(1.16) saturate(.88)'},
+    {name:'medium',  swatch:'#cd9a6c', filter:'none'},                 /* the hands as drawn */
+    {name:'tan',     swatch:'#a9744a', filter:'brightness(.84) saturate(1.08) hue-rotate(2deg)'},
+    {name:'deep',    swatch:'#79502e', filter:'brightness(.62) saturate(1.14) hue-rotate(3deg)'},
+    {name:'deepest', swatch:'#523620', filter:'brightness(.46) saturate(1.12) hue-rotate(4deg)'}
+  ];
+  var picker=document.getElementById('skinPicker'); if(!picker) return;
+  function apply(t){
+    document.documentElement.style.setProperty('--skin-filter', t.filter);
+    try{ localStorage.setItem('garden.skin', t.name); }catch(e){}
+    Array.prototype.forEach.call(picker.children, function(b){ b.setAttribute('aria-pressed', b.dataset.name===t.name ? 'true':'false'); });
+  }
+  SKINS.forEach(function(t){
+    var b=document.createElement('button'); b.className='swatch'; b.type='button'; b.dataset.name=t.name;
+    b.style.background=t.swatch; b.setAttribute('aria-label','skin tone: '+t.name); b.setAttribute('aria-pressed','false');
+    b.addEventListener('click', function(){ apply(t); });
+    picker.appendChild(b);
+  });
+  var saved; try{ saved=localStorage.getItem('garden.skin'); }catch(e){}
+  apply(SKINS.filter(function(t){ return t.name===saved; })[0] || SKINS[2]);  // restore, else default medium
 })();
 </script>
 

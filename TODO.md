@@ -11,9 +11,8 @@ _Reconciled against actual code/repo state (the old date stamps were unreliable 
 - [ ] **Redeploy in Coolify** to see the latest — push doesn't auto-deploy.
 
 ## 🟠 Open — my lane (garden), no Lisa needed
-- [ ] **Perspective modes** (the big new direction, MODEL §7): *outside* = iOS-Weather-style layered falling rain + drifting clouds over the scene; *inside the shed* (`inside-shed.png`) = **rain-on-glass** (rivulets, blurred garden) — the "step into the shed = take perspective" regulation move. Prototype: `rain-shed.html`. Rules: positive weather stays outside; hard weather is a *choice* to tend-through or shelter; never all-in-the-shed.
-- [ ] **Drifting clouds** layer in the cast (slow, soft, "alive") — wanted in both perspective modes.
-- [ ] **Action screens** (blooms / weeds / bucket) with **first-person hands + skin-tone picker** — `hands-picker.html` prototype exists (CSS-filter recolour + `localStorage`); `hands-web.png` is prepped. Skin = a recolour layer, everything else fixed.
+- [ ] **Perspective modes** (MODEL §7) — _partly done:_ ✅ drifting clouds in the outside cast (`408ec01`); ✅ **shed rain-on-glass** "step into the shed" view, rain/storm only (`f53302e`). _Remaining:_ **fog/haze "panes fog up"** shelter treatment (fog = can't-see, not rain-on-glass); **outside "layered depth"** iOS-style near/far rain polish.
+- [ ] **Action screens** (blooms / weeds / bucket) with **first-person hands + skin-tone picker** — `hands-picker.html` prototype exists (CSS-filter recolour + `localStorage`); `hands-web.png` is prepped. Skin = a recolour layer, everything else fixed. ← _in progress_
 - [ ] Optional: cast weather *behind the dial on screen 6* too (currently casts on the screen-1 scene).
 
 ## 🔁 Orphaned by the crash — now nobody's unless I take them
@@ -29,6 +28,7 @@ _Reconciled against actual code/repo state (the old date stamps were unreliable 
 - [ ] **Care = the nurturing pour + a between-gardens beat** — the watering can as nurture; relational warmth across the fence.
 
 ## ✅ Done (verified in code)
+- **Perspective:** **drifting clouds** layer in the cast (sun 2 / rain 4 / fog 2 / storm 4 dark / haze none; reduced-motion-safe); **shed rain-on-glass** view — "step into the shed" from a rain/storm cast → sheltered rain-on-glass over `inside-shed-web.png`, loops torn down on close, reduced-motion = static drops.
 - **Cast lane:** 6 weathers; **rain "fireworks" fixed** (pixel-distance fall, not `translateY(%)`); contrast sweep over the bright scene; **haze** (disgust, yellow/humid, distinct from fear's grey fog); **intensity scaling** via `--i`; **climate (Seeking/Care) retired** — six weathers only. Surprise fork = renderers only (`flash`/`sunbreak`/`hail`); the **dial owns the appraisal**.
 - **Sundial walk complete** — notice → narrow → pick → read → tell-apart → express (+ surprise fork). _(Per the crashed agent's report — worth a quick re-verify.)_
 - **Scenes reworked** to `calmstate.png` / `negativestate.png` (1801×900, aligned, mobile-safe; old `calm-garden`/`anxiety-garden` removed). Alarm trip cross-fades cleanly.
