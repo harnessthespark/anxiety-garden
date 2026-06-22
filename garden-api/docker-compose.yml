@@ -1,0 +1,23 @@
+# Lesson 3: run a REAL Postgres locally — the same database you'll use in production,
+# instead of the SQLite training-wheels file.
+#
+#   Start it:   docker compose up -d
+#   Stop it:    docker compose down        (add -v to also wipe the data)
+#
+# Then copy the Postgres DATABASE_URL line from .env.example into a new .env file and
+# restart uvicorn. Same code, real database.
+
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: garden
+      POSTGRES_PASSWORD: garden
+      POSTGRES_DB: garden
+    ports:
+      - "5432:5432"          # expose Postgres on your machine's port 5432
+    volumes:
+      - garden_pgdata:/var/lib/postgresql/data   # keep the data between restarts
+
+volumes:
+  garden_pgdata:
