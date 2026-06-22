@@ -16,7 +16,7 @@ _Reconciled against actual code/repo state (the old date stamps were unreliable 
 - [ ] Optional: cast weather *behind the dial on screen 6* too (currently casts on the screen-1 scene).
 
 ## 🔁 Orphaned by the crash — now nobody's unless I take them
-- [ ] **Alarm: bigger + visibly ringing** — was handed to the (now-crashed) second agent. The small octagon is baked into the scene rasters; the cleanest fix is lifting it to a scriptable overlay (`alarm-calm.png` / `alarm-alert.png`) so it's big, tappable, and rings on storm. `alarm.png` is candidate art (160 MP, unwired).
+- [x] **Alarm: bigger + visibly ringing** — `alarm-alert.png` (octagon + yellow rays) added as a scene-SVG layer (`#alarmringing`), revealed on `svg.storm`, hidden in calm. Bigger + clearly ringing when tripped. ⚠️ **Caveat:** the alarm assets were *not* soloed-in-position (the alarm is drawn mid-canvas, not at the scene's bottom-left), so it's placed via a viewBox `transform` workaround — works + resolution-independent, but **the clean fix is for Lisa to re-export `alarm-calm`/`alarm-alert` soloed at the scene position** (per the PLAN.md export recipe), then it drops in 1:1 without the transform. "Bigger in *calm*" still needs her scene redraw (octagon is baked small into `calmstate.png`).
 - [ ] **Downsize the 3 orphaned 160 MP exports** (`alarm.png`, `buckets-together.png`, `seedshed.png`) to ≤1800px (mobile rule); keep originals aside. (`inside-shed-web.png` already done.)
 - [ ] **`garden-api/`** — usable FastAPI scaffold sitting **uncommitted** (the gate's future `/auth` + check-in backend + Lisa's learning project). Clean 13-file add (no venv/idea/pyc). Decide: commit or leave.
 

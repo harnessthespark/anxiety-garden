@@ -154,6 +154,10 @@
   .scene-stage #clouds{opacity:0; transform:translate(70px,-26px); transition:opacity 1s ease, transform 1.5s ease}
   .scene-stage svg.storm #clouds{opacity:1; transform:translate(0,0)}
   @media(prefers-reduced-motion:reduce){.scene-stage #clouds{transition:none}}
+  /* the alarm rings (octagon + yellow rays) when it trips — fades in with the storm, no flashing */
+  .scene-stage #alarmringing{opacity:0; transition:opacity .9s ease; pointer-events:none}
+  .scene-stage svg.storm #alarmringing{opacity:1}
+  @media(prefers-reduced-motion:reduce){.scene-stage #alarmringing{transition:none}}
   /* ---------- screen 4 flowerbed (clean CSS bed; flowers are the art) ---------- */
   .bloom-stage{position:relative; margin:22px 0; border-radius:18px; overflow:hidden; box-shadow:var(--shadow);
     width:min(94vw,1040px); margin-left:50%; transform:translateX(-50%); aspect-ratio:5 / 2;
