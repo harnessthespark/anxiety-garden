@@ -5,7 +5,7 @@ _Reconciled against actual code/repo state (the old date stamps were unreliable 
 ## 🔴 Needs Lisa (decisions / clinical / design)
 - [ ] **Sensation→garden-place map** (§6) — the cast's place-glows are **placeholder** in `garden.html`'s `CAST.place` config until this lands (the scene has no greenhouse/gate/canopy layers, so it's a positional overlay, not real geography).
 - [x] **SIGNATURE map** in `sundial.html` — **confirmed by Lisa**: anger=hot/tight · fear=cold/racing/tight · disgust=queasy/tight · sadness=heavy/numb · joy=light/buzzy · surprise=jolt/racing. No changes needed.
-- [ ] **Confirm the 6 weather colours** — anger red · joy amber · disgust green · sadness blue · fear purple · surprise pink.
+- [x] **6 weather colours** — confirmed by Lisa (fine as-is): anger `#e0432a` · joy `#e7b91f` · disgust `#2d9846` · sadness `#2f63b3` · fear `#5b4a9e` · surprise `#cc3f86`.
 - [ ] **Flat 6-disc art** — faceted top-down 6-segment disc matching the tilted one (or I warm the code wheel as interim).
 - [ ] **Body figure** in the drill-down — keep & soften / calmer outline / drop and use words.
 - [ ] **Redeploy in Coolify** to see the latest — push doesn't auto-deploy.
