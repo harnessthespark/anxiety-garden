@@ -4,7 +4,7 @@ _Reconciled against actual code/repo state (the old date stamps were unreliable 
 
 ## 🔴 Needs Lisa (decisions / clinical / design)
 - [ ] **Sensation→garden-place map** (§6) — the cast's place-glows are **placeholder** in `garden.html`'s `CAST.place` config until this lands (the scene has no greenhouse/gate/canopy layers, so it's a positional overlay, not real geography).
-- [ ] **Redline the `SIGNATURE` map** in `sundial.html` — which body qualities point to which feeling (fear = cold/racing/tight, anger = hot/tight, etc.). The body-first narrow's accuracy rides on this. Also `REGIONS` / `QUALITIES` wording.
+- [x] **SIGNATURE map** in `sundial.html` — **confirmed by Lisa**: anger=hot/tight · fear=cold/racing/tight · disgust=queasy/tight · sadness=heavy/numb · joy=light/buzzy · surprise=jolt/racing. No changes needed.
 - [ ] **Confirm the 6 weather colours** — anger red · joy amber · disgust green · sadness blue · fear purple · surprise pink.
 - [ ] **Flat 6-disc art** — faceted top-down 6-segment disc matching the tilted one (or I warm the code wheel as interim).
 - [ ] **Body figure** in the drill-down — keep & soften / calmer outline / drop and use words.
