@@ -24,7 +24,11 @@
     --radius:16px;
     --font:"Atkinson Hyperlegible",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
     --display:"Caveat","Patrick Hand",ui-rounded,"Segoe Print",cursive;
+    --skin-filter:none;   /* set from the shared 'garden.skin' choice — see the skin bridge at end of script */
   }
+  /* any first-person hand on the dial (the turn-the-dial pose, when its art lands) re-tints to the
+     user's chosen tone — kept in sync with garden.html's "make these yours" picker via localStorage. */
+  .hands{ filter:var(--skin-filter); transition:filter .35s ease }
   @media (prefers-color-scheme: dark){
     :root{ --paper:#15171a; --card:#1f2227; --line:#33373e;
            --ink:#e8e6df; --ink-soft:#a9ada3; --ink-faint:#7d8178;
@@ -844,6 +848,22 @@
   }catch(e){}
   var _pick=pick;
   pick=function(i){ _pick(i); try{ localStorage.setItem('sundial.pick', i); }catch(e){} };
+})();
+
+/* ===== skin bridge — the dial reads the "make these yours" tone from garden.html =====
+   The picker lives in the parent doc and writes localStorage['garden.skin']; the dial runs in an
+   iframe (its own document), so it can't see the parent's --skin-filter. localStorage IS shared
+   same-origin, so we read it here and apply it to any .hands on the dial — and the 'storage' event
+   fires in THIS document when the parent changes it, so a live tone change updates the dial too.
+   (Tones mirror garden.html's SKINS — keep them in step.) */
+(function(){
+  var SKINS={ light:'brightness(1.34) saturate(.72) hue-rotate(-4deg)', fair:'brightness(1.16) saturate(.88)',
+    medium:'none', tan:'brightness(.84) saturate(1.08) hue-rotate(2deg)',
+    deep:'brightness(.62) saturate(1.14) hue-rotate(3deg)', deepest:'brightness(.46) saturate(1.12) hue-rotate(4deg)' };
+  function apply(){ var n; try{ n=localStorage.getItem('garden.skin'); }catch(e){}
+    document.documentElement.style.setProperty('--skin-filter', SKINS[n] || 'none'); }
+  apply();
+  window.addEventListener('storage', function(e){ if(!e || e.key==='garden.skin' || e.key===null) apply(); });
 })();
 </script>
 </body>
