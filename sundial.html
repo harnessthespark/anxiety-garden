@@ -26,7 +26,8 @@
     --display:"Caveat","Patrick Hand",ui-rounded,"Segoe Print",cursive;
     --skin-filter:none;   /* set from the shared 'garden.skin' choice — see the skin bridge at end of script */
   }
-  /* any first-person hand on the dial (the turn-the-dial pose, when its art lands) re-tints to the
+  /* any first-person hand on the dial (the pointing pose — a finger touching the colour you feel,
+     when its art lands) re-tints to the
      user's chosen tone — kept in sync with garden.html's "make these yours" picker via localStorage. */
   .hands{ filter:var(--skin-filter); transition:filter .35s ease }
   @media (prefers-color-scheme: dark){
@@ -251,7 +252,7 @@
     <!-- AMBIENT: the painted tilted disc, shadow drifting -->
     <div class="face ambient" id="ambient" role="button" tabindex="0"
          aria-label="The sundial in the garden. Activate to turn it to face you and read today's weather.">
-      <img src="assets/sun-dial-web.png" alt="A faceted, many-coloured sundial disc on a carved stone plinth, tilted in the garden.">
+      <img src="assets/sun-dial-face.png" alt="A faceted, many-coloured sundial disc on a carved stone plinth, a gnomon casting its shadow across the colours.">
       <span class="shadow" aria-hidden="true"></span>
       <span class="hint" aria-hidden="true">tap to read your weather</span>
     </div>
